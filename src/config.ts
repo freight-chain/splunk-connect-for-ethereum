@@ -38,6 +38,7 @@ export interface SplunkHecConfig extends HecConfig {
         nodeInfo: string;
         nodeMetrics: string;
         quorumProtocol: string;
+        gethPeer: string;
     };
 }
 
@@ -46,13 +47,14 @@ export interface CacheConfig {
 }
 
 export const defaultSourcetypes: SplunkHecConfig['sourcetypes'] = {
-    block: 'block',
-    transaction: 'transaction',
-    event: 'transaction:event',
-    pendingtx: 'transaction:pending',
-    nodeInfo: 'node:info',
-    nodeMetrics: 'node:metrics',
-    quorumProtocol: 'quorum:protocol',
+    block: 'eth:block',
+    transaction: 'eth:transaction',
+    event: 'eth:transaction:event',
+    pendingtx: 'eth:transaction:pending',
+    nodeInfo: 'eth:node:info',
+    nodeMetrics: 'eth:node:metrics',
+    quorumProtocol: 'eth:quorum:protocol',
+    gethPeer: 'eth:geth:peer',
 };
 
 export const CONFIG_DEFAULTS: DeepPartial<EthloggerConfig> = {

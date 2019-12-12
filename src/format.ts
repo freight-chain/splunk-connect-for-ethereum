@@ -1,6 +1,14 @@
 import { toChecksumAddress } from 'web3-utils';
 import { RawBlockResponse, RawLogResponse, RawTransactionReceipt, RawTransactionResponse } from './eth/responses';
-import { AddressInfo, EventData, FormattedBlock, FormattedLogEvent, FormattedTransaction, FunctionCall } from './msgs';
+import {
+    AddressInfo,
+    EventData,
+    FormattedBlock,
+    FormattedLogEvent,
+    FormattedTransaction,
+    FunctionCall,
+    FormattedPendingTransaction,
+} from './msgs';
 import { bigIntToNumber, parseBigInt } from './utils/bn';
 
 export function formatBlock(rawBlock: RawBlockResponse): FormattedBlock {
@@ -71,6 +79,32 @@ export function formatTransaction(
         fromInfo,
         toInfo,
         contractAddressInfo,
+        call,
+    };
+}
+
+export function formatPendingTransaction(
+    rawTx: RawTransactionResponse,
+    type: 'pending' | 'queued',
+    fromInfo?: AddressInfo,
+    toInfo?: AddressInfo,
+    call?: FunctionCall
+): FormattedPendingTransaction {
+    return {
+        type,
+        hash: rawTx.hash,
+        from: toChecksumAddress(rawTx.from),
+        to: rawTx.to != null ? toChecksumAddress(rawTx.to) : null,
+        gas: bigIntToNumber(rawTx.gas),
+        gasPrice: bigIntToNumber(rawTx.gasPrice),
+        input: rawTx.input,
+        nonce: rawTx.nonce,
+        value: rawTx.value,
+        v: rawTx.v,
+        r: rawTx.r,
+        s: rawTx.s,
+        fromInfo,
+        toInfo,
         call,
     };
 }

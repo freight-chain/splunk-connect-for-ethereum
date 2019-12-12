@@ -142,7 +142,7 @@ export interface ContractAbi {
     fileName: string;
 }
 
-export class AbiDecoder implements ManagedResource {
+export class AbiRepository implements ManagedResource {
     private signatures: Map<string, AbiMatch> = new Map();
     private contracts: Map<string, ContractAbi> = new Map();
     private abiCoder: AbiCoder = require('web3-eth-abi');

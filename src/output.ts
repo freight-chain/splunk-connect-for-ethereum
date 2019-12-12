@@ -7,6 +7,7 @@ import {
     PendingTransactionMessage,
     QuorumProtocolMessage,
     TransactionMessage,
+    GethPeerMessage,
 } from './msgs';
 import { createDebug } from './utils/debug';
 import { ManagedResource } from './utils/resource';
@@ -20,7 +21,8 @@ export type OutputMessage =
     | PendingTransactionMessage
     | LogEventMessage
     | NodeMetricsMessage
-    | QuorumProtocolMessage;
+    | QuorumProtocolMessage
+    | GethPeerMessage;
 
 export interface Output extends ManagedResource {
     write(message: OutputMessage): void;
@@ -65,7 +67,14 @@ export class HecOutput implements Output, ManagedResource {
                 const metricsPrefix = this.config.metricsPrefix ? this.config.metricsPrefix + '.' : '';
                 this.hec.pushMetrics({
                     time: msg.time,
-                    measurements: Object.fromEntries(msg.metrics.map(m => [metricsPrefix + m.name, m.value])),
+                    measurements:
+                        metricsPrefix === ''
+                            ? msg.metrics
+                            : Object.fromEntries(
+                                  Object.entries(msg.metrics)
+                                      .filter(([, v]) => v != null)
+                                      .map(([name, value]) => [metricsPrefix + name, value])
+                              ),
                     metadata: {
                         index: this.config.metricsIndex,
                         sourcetype: this.config.sourcetypes.nodeMetrics,
@@ -79,6 +88,16 @@ export class HecOutput implements Output, ManagedResource {
                     metadata: {
                         index: this.config.eventIndex,
                         sourcetype: this.config.sourcetypes.quorumProtocol,
+                    },
+                });
+                break;
+            case 'geth:peer':
+                this.hec.pushEvent({
+                    time: msg.time,
+                    body: msg.peer,
+                    metadata: {
+                        index: this.config.eventIndex,
+                        sourcetype: this.config.sourcetypes.gethPeer,
                     },
                 });
                 break;

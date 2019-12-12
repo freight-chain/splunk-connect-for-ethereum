@@ -1,3 +1,5 @@
+import { GethPeer } from './eth/responses';
+
 export type Address = string;
 export type Value = string | number | boolean | Array<string | number | boolean>;
 
@@ -52,7 +54,7 @@ export interface BlockMessage {
     block: FormattedBlock;
 }
 
-export interface FormattedPendingTransaction {
+export interface BaseFormattedTransaction {
     /** hash of the transaction */
     hash: string;
     /** address of the sender */
@@ -75,6 +77,19 @@ export interface FormattedPendingTransaction {
     r: string;
     /** ECDSA signature s */
     s: string;
+
+    // additional info
+
+    /** Information about the recipient address of the transaction */
+    toInfo?: AddressInfo;
+    /** Information about the sender address of the transaction */
+    fromInfo?: AddressInfo;
+    /** Information about the function extracted from `input` if ABI information is available */
+    call?: FunctionCall;
+}
+
+export interface FormattedPendingTransaction extends BaseFormattedTransaction {
+    type: 'pending' | 'queued';
 }
 
 export interface PendingTransactionMessage {
@@ -84,7 +99,7 @@ export interface PendingTransactionMessage {
 }
 
 /** Transaction and transaction receipt information formatted for output */
-export interface FormattedTransaction extends FormattedPendingTransaction {
+export interface FormattedTransaction extends BaseFormattedTransaction {
     /** hash of the block where this transaction was in */
     blockHash: string | null;
     /** integer of the transaction's index position in the block */
@@ -108,15 +123,8 @@ export interface FormattedTransaction extends FormattedPendingTransaction {
 
     // additional/computed information
 
-    /** Information about the recipient address of the transaction */
-    toInfo?: AddressInfo;
-    /** Information about the sender address of the transaction */
-    fromInfo?: AddressInfo;
     /** Information about the created contract address */
     contractAddressInfo?: AddressInfo;
-
-    /** Information about the function extracted from `input` if ABI information is available */
-    call?: FunctionCall;
 }
 
 export interface AddressInfo {
@@ -191,10 +199,27 @@ export interface LogEventMessage {
     event: FormattedLogEvent;
 }
 
+export interface NodeMetrics {
+    gasPrice?: number;
+    hashRate?: number;
+    peerCount?: number;
+
+    'geth.txpool.pending'?: number;
+    'geth.txpool.queued'?: number;
+
+    [name: string]: number | undefined;
+}
+
 export interface NodeMetricsMessage {
     type: 'node:metrics';
     time: number;
-    metrics: Array<{ name: string; value: number }>;
+    metrics: NodeMetrics;
+}
+
+export interface GethPeerMessage {
+    type: 'geth:peer';
+    time: number;
+    peer: GethPeer;
 }
 
 export interface QuorumProtocolMessage {

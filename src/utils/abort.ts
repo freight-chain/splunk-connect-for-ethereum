@@ -1,9 +1,12 @@
-export interface AbortPromise extends PromiseLike<never> {
-    aborted: boolean;
+export interface Abortable {
     abort(): void;
 }
 
-export const ABORT = '[[ABORT]]';
+export interface AbortPromise extends PromiseLike<never>, Abortable {
+    aborted: boolean;
+}
+
+export const ABORT = Symbol('[[ABORT]]');
 
 export class AbortablePromise implements AbortPromise {
     public aborted: boolean = false;
@@ -42,7 +45,7 @@ export function raceAbort<T>(promise: Promise<T>, abort?: AbortPromise): Promise
     return Promise.race([promise, Promise.resolve(abort)]);
 }
 
-export class AbortManager {
+export class AbortManager implements Abortable {
     public aborted: boolean = false;
     private handles: Set<AbortPromise> = new Set();
 
