@@ -11,6 +11,8 @@ test('defaults', async () => {
     await expect(loadEthloggerConfig({} as CliFlags, true)).resolves.toMatchInlineSnapshot(`
                 Object {
                   "abi": Object {
+                    "abiFileExtension": undefined,
+                    "decodeAnonymous": true,
                     "directory": undefined,
                     "fingerprintContracts": true,
                   },

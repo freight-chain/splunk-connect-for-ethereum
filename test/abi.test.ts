@@ -1,14 +1,17 @@
-import { AbiRepository, intBits, decodeParameterValue, computeSignatureHash, computeSignature } from '../src/abi';
 import { join } from 'path';
+import { AbiRepository } from '../src/abi/repository';
+import { intBits } from '../src/abi/types';
+import { decodeParameterValue } from '../src/abi/decode';
+import { computeSignatureHash, computeSignature } from '../src/abi/signature';
 
-test('AbiRepository#decodeMethod', async () => {
+test('AbiRepository#decodeFunctionCall', async () => {
     const abiRepo = new AbiRepository();
 
     await expect(abiRepo.loadAbiDir(join(__dirname, 'abi'))).resolves.toMatchInlineSnapshot(`3`);
 
     expect(abiRepo.signatureCount).toMatchInlineSnapshot(`30`);
 
-    const res1 = abiRepo.decodeMethod(
+    const res1 = abiRepo.decodeFunctionCall(
         `0x23b872dd000000000000000000000000bcbccc14595f6050f83212ddc2c06c2527269ccb0000000000000000000000000e88984287591fc5ef79fe1374e9b86fdd372bcb0000000000000000000000000000000000000000000000000000000000005d35`
     );
     expect(res1).toMatchInlineSnapshot(`
@@ -40,7 +43,7 @@ test('AbiRepository#decodeMethod', async () => {
         }
     `);
 
-    const res2 = abiRepo.decodeMethod(
+    const res2 = abiRepo.decodeFunctionCall(
         `0xa22cb4650000000000000000000000007c77f845f9c9c0d0c0f422a072787db0582a729a0000000000000000000000000000000000000000000000000000000000000001`,
         'da148233860cf79ce56829590f280ed40af82bb19d8d3e3bcdaa97f008b8475f'
     );

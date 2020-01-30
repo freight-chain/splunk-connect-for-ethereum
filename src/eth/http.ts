@@ -1,11 +1,11 @@
 import { default as HttpAgent, HttpOptions, HttpsAgent } from 'agentkeepalive';
 import fetch from 'node-fetch';
+import { HttpTransportConfig } from '../config';
 import { createModuleDebug } from '../utils/debug';
 import { isHttps } from '../utils/httputils';
-import { isValidJsonRpcResponse, JsonRpcRequest, JsonRpcResponse, checkError } from './jsonrpc';
+import { AggregateMetric, httpClientStats } from '../utils/stats';
+import { checkError, JsonRpcRequest, JsonRpcResponse, validateJsonRpcResponse } from './jsonrpc';
 import { EthereumTransport } from './transport';
-import { httpClientStats, AggregateMetric } from '../utils/stats';
-import { HttpTransportConfig } from '../config';
 
 const { debug, trace } = createModuleDebug('eth:http');
 
@@ -94,8 +94,8 @@ export class HttpTransport implements EthereumTransport {
             }
             const data = await response.json();
             trace('Received JSON RPC response:\n%O', data);
-            if (!isValidJsonRpcResponse(data)) {
-                throw new Error('Invalid JSON RPC response');
+            if (!validateJsonRpcResponse(data)) {
+                throw new Error('UNREACHABLE: Invalid JSON RPC response');
             }
             this.aggregates.requestDuration.push(Date.now() - startTime);
             debug('Completed JSON RPC request in %d ms', Date.now() - startTime);

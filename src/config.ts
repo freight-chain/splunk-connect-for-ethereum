@@ -126,16 +126,21 @@ export interface CheckpointConfig extends CheckpointConfigSchema {
 export interface AbiRepositoryConfigSchema {
     /** If specified, the ABI repository will recursively search this directory for ABI files */
     directory?: string;
-    /** Currently set to `.json` as the file extension for ABIs. */
-    fileExtension?: string;
+    /** `true` to search ABI directory recursively for ABI files */
+    searchRecursive?: boolean;
+    /** Set to `.json` by default as the file extension for ABIs */
+    abiFileExtension?: string;
     /**
      * If enabled, the ABI repsitory will creates hashes of all function and event signatures of an ABI
      * (the hash is the fingerprint) and match it against the EVM bytecode obtained from live smart contracts
      * we encounter.
-     *
-     * NOTE: disabling it is currently being ignored since non-fingerprint matching hasn't been implemented
      */
-    fingerprintContracts: boolean; // TODO
+    fingerprintContracts: boolean;
+    /**
+     * If enabled, ethlogger will attempt to decode function calls and event logs using a set of
+     * common signatures as a fallback if no match against any supplied ABI definition was found.
+     */
+    decodeAnonymous: boolean;
 }
 
 export type AbiRepositoryConfig = AbiRepositoryConfigSchema;
@@ -704,7 +709,9 @@ export async function loadEthloggerConfig(flags: CliFlags, dryRun: boolean = fal
         output: parseOutput(defaults.output),
         abi: {
             directory: flags['abi-dir'] ?? defaults.abi?.directory,
+            abiFileExtension: defaults.abi?.abiFileExtension,
             fingerprintContracts: defaults.abi?.fingerprintContracts ?? true,
+            decodeAnonymous: defaults.abi?.decodeAnonymous ?? true,
         },
         blockWatcher: {
             enabled:

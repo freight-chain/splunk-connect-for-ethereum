@@ -58,7 +58,10 @@ checkpoint:
     filename: checkpoints.json
     saveInterval: 250
 abi:
+    abiFileExtension: .json
+    searchRecursive: true
     fingerprintContracts: true
+    decodeAnonymous: true
 contractInfo:
     maxCacheEntries: 25000
 blockWatcher:
@@ -74,6 +77,8 @@ blockWatcher:
 nodeMetrics:
     enabled: true
     collectInterval: 1s
+    collect:
+        rawPendingTransactions: false
     retryWaitTime:
         type: linear-backoff
         min: 0

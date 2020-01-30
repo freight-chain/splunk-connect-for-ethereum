@@ -64,7 +64,8 @@
     },
     "files": [
         "/bin",
-        "/lib"
+        "/lib",
+        "/data/*.abisigs.gz"
     ],
     "keywords": [
         "splunk",
@@ -85,7 +86,8 @@
     },
     "scripts": {
         "lint": "eslint . --ext .ts --config .eslintrc",
-        "build": "rm -rf lib && tsc -b",
+        "build": "rm -rf lib && tsc -b && yarn build:signatures",
+        "build:signatures": "ts-node scripts/buildsigs.ts",
         "test": "jest --config jest.config.json",
         "posttest": "eslint . --ext .ts --config .eslintrc",
         "prepack": "yarn build",
