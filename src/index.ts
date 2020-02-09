@@ -1,7 +1,7 @@
 import { Command } from '@oclif/command';
 import debugModule from 'debug';
 import { inspect } from 'util';
-import { AbiRepository } from './abi/repository';
+import { AbiRepository } from './abi/repo';
 import { BlockWatcher } from './blockwatcher';
 import { Checkpoint } from './checkpoint';
 import { CLI_FLAGS } from './cliflags';
@@ -142,11 +142,9 @@ class Ethlogger extends Command {
             ethClient: client,
             platformAdapter,
             output,
-            metricsEnabled: config.nodeMetrics.enabled,
-            metricsInterval: config.nodeMetrics.collectInterval,
-            infoEnabled: config.nodeInfo.enabled,
-            infoInterval: config.nodeInfo.collectInterval,
-            metricsRetryWaitTime: config.nodeInfo.retryWaitTime,
+            nodeMetrics: config.nodeMetrics,
+            nodeInfo: config.nodeInfo,
+            pendingTx: config.pendingTx,
         });
         addResource(nodeStatsCollector);
         internalStatsCollector.addSource(nodeStatsCollector, 'nodeStatsCollector');

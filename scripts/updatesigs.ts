@@ -2,9 +2,8 @@ import { debug as createDebug } from 'debug';
 import { readFile, writeFile } from 'fs-extra';
 import fetch from 'node-fetch';
 import { sleep } from '../src/utils/async';
-import { parseSignature } from '../src/abi/signature';
 
-const debug = createDebug('sigupdate');
+const debug = createDebug('updatesigs');
 debug.enabled = true;
 
 interface SignatureApiResponse {

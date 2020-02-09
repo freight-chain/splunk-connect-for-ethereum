@@ -1,8 +1,8 @@
+import { AbiCoder } from 'web3-eth-abi';
 import { toChecksumAddress } from 'web3-utils';
 import { parseBigInt } from '../utils/bn';
-import { intBits, isArrayType, elementType } from './types';
 import { Abi } from './abi';
-import { AbiCoder } from 'web3-eth-abi';
+import { elementType, intBits, isArrayType } from './datatypes';
 
 export type ScalarValue = string | number | boolean;
 export type Value = ScalarValue | ScalarValue[];

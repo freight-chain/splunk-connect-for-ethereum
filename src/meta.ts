@@ -59,10 +59,10 @@ export function substituteVariablesInHecConfig(
     const networkId = platformAdapter.networkId;
     const metaVariables: MetadataVariables = {
         HOSTNAME: host,
-        ENODE: platformAdapter.enode ?? undefined,
+        ENODE: platformAdapter.enode ?? '',
         PLATFORM: platformAdapter.name,
-        NETWORK_ID: networkId != null ? String(networkId) : undefined,
-        NETWORK: platformAdapter.networkName ?? undefined,
+        NETWORK_ID: networkId != null ? String(networkId) : '',
+        NETWORK: platformAdapter.networkName ?? '',
         PID: String(pid),
         VERSION: ethloggerVersion,
         NODE_VERSION: nodeVersion,

@@ -7,14 +7,16 @@ export const fixedBits = (type: string, baseType: 'fixed' | 'ufixed'): [number, 
     return [parseInt(mstr, 10), parseInt(nstr, 10)];
 };
 
-const checkDynamicArrayType = (typeStr: string): [true, string] | [false, undefined] =>
+export const checkDynamicArrayType = (typeStr: string): [true, string] | [false, undefined] =>
     typeStr.endsWith('[]') ? [true, typeStr.slice(0, -2)] : [false, undefined];
 
 export const checkFixedSizeArrayType = (typeStr: string): [true, string, number] | [false, undefined, undefined] => {
     if (typeStr.endsWith(']')) {
         const start = typeStr.indexOf('[');
         const size = parseInt(typeStr.slice(start + 1, -1), 10);
-        return [true, typeStr.slice(0, start), size];
+        if (start > -1 && !isNaN(size)) {
+            return [true, typeStr.slice(0, start), size];
+        }
     }
     return [false, undefined, undefined];
 };

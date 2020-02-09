@@ -11,7 +11,7 @@ test('defaults', async () => {
     await expect(loadEthloggerConfig({} as CliFlags, true)).resolves.toMatchInlineSnapshot(`
                 Object {
                   "abi": Object {
-                    "abiFileExtension": undefined,
+                    "abiFileExtension": ".json",
                     "decodeAnonymous": true,
                     "directory": undefined,
                     "fingerprintContracts": true,
@@ -114,6 +114,11 @@ test('defaults', async () => {
                       "transaction": "ethereum:transaction",
                     },
                     "type": "hec",
+                  },
+                  "pendingTx": Object {
+                    "collectInterval": 10000,
+                    "enabled": false,
+                    "retryWaitTime": 10000,
                   },
                 }
             `);

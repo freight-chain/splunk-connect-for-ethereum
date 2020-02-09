@@ -2,13 +2,13 @@ import { readdir, readFile, stat } from 'fs-extra';
 import { basename, join as joinPath } from 'path';
 import { AbiItem } from 'web3-utils';
 import { AbiRepositoryConfig } from '../config';
+import { Address } from '../msgs';
 import { createModuleDebug } from '../utils/debug';
 import { Abi } from './abi';
 import { computeContractFingerprint } from './contract';
 import { computeSignature } from './signature';
-import { Address } from '../msgs';
 
-const { debug, info, warn, trace } = createModuleDebug('abi:files');
+const { debug, warn } = createModuleDebug('abi:files');
 
 interface TruffleBuild {
     contractName: string;
@@ -25,7 +25,7 @@ export interface SignatureFileContents {
     entries: Array<[string, ...Abi[]]>;
 }
 
-export function isAbiArray(obj: any): obj is AbiItem[] {
+export function isAbiItemArray(obj: any): obj is AbiItem[] {
     return Array.isArray(obj);
 }
 
@@ -65,7 +65,10 @@ export interface AbiFileContents {
     contractName: string;
     contractAddress?: string;
     contractFingerprint?: string;
-    items: Abi[];
+    entries: Array<{
+        abi: Abi;
+        sig: string;
+    }>;
 }
 
 export function parseAbiFileContents(
@@ -83,38 +86,38 @@ export function parseAbiFileContents(
             basename(fileName).split('.', 1)[0];
         const addresses = extractDeployedContractAddresses(abiData);
         if (addresses != null) {
-            if (addresses.length > 0) {
+            if (addresses.length > 1) {
                 warn(
                     'Found contract %s deployed to multiple (%d) networks, using address %s of first network',
                     contractName,
                     addresses.length,
                     addresses[0]
                 );
-                contractAddress = addresses[0];
             }
+            contractAddress = addresses[0];
         }
-    } else if (isAbiArray(abiData)) {
+    } else if (isAbiItemArray(abiData)) {
         abis = abiData;
         contractName = basename(fileName).split('.', 1)[0];
     } else {
         throw new Error(`Invalid contents of ABI file ${fileName}`);
     }
 
-    const items = abis
+    const entries = abis
         .filter(abi => (abi.type === 'function' || abi.type === 'event') && abi.name != null)
-        .map(item => ({
-            item,
-            sig: computeSignature({ name: item.name!, inputs: item.inputs ?? [], type: 'function' }),
+        .map(abi => ({
+            abi,
+            sig: computeSignature({ name: abi.name!, inputs: abi.inputs ?? [], type: 'function' }),
         }));
 
     let contractFingerprint: string | undefined;
     if (computeFingerprint) {
-        const functions = items
-            .filter(i => i.item.type === 'function')
+        const functions = entries
+            .filter(i => i.abi.type === 'function')
             .map(i => i.sig)
             .sort();
-        const events = items
-            .filter(i => i.item.type === 'event')
+        const events = entries
+            .filter(i => i.abi.type === 'event')
             .map(i => i.sig)
             .sort();
 
@@ -126,14 +129,16 @@ export function parseAbiFileContents(
         contractName,
         contractAddress,
         contractFingerprint: contractFingerprint,
-        items: abis.map(item => ({
-            name: item.name!,
-            type: item.type as 'function' | 'event',
-            inputs: item.inputs ?? [],
-            contractName,
-            contractFingerprint,
-            contractAddress,
-            fileName,
+        entries: entries.map(item => ({
+            sig: item.sig,
+            abi: {
+                name: item.abi.name!,
+                type: item.abi.type as 'function' | 'event',
+                inputs: item.abi.inputs ?? [],
+                contractName,
+                contractFingerprint,
+                contractAddress,
+            },
         })),
     };
 }

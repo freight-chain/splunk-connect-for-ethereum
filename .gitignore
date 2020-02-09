@@ -14,3 +14,4 @@ nohup.out
 .public-contract
 data/*.abisigs*
 /coverage
+.env

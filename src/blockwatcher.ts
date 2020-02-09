@@ -1,5 +1,5 @@
 import { ContractInfo, getContractInfo } from './abi/contract';
-import { AbiRepository } from './abi/repository';
+import { AbiRepository } from './abi/repo';
 import { BlockRange, blockRangeSize, blockRangeToArray, chunkedBlockRanges, serializeBlockRange } from './blockrange';
 import { Checkpoint } from './checkpoint';
 import { EthereumClient } from './eth/client';
@@ -350,7 +350,9 @@ export class BlockWatcher implements ManagedResource {
                 addr,
                 this.ethClient,
                 (sig: string) => abiRepo.getMatchingSignatureName(sig),
-                (_address: string, fingerprint: string) => abiRepo.getContractByFingerprint(fingerprint)?.contractName
+                (address: string, fingerprint: string) =>
+                    abiRepo.getContractByAddress(address)?.contractName ??
+                    abiRepo.getContractByFingerprint(fingerprint)?.contractName
             )
         );
         return result;

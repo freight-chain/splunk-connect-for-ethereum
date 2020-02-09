@@ -9,6 +9,12 @@ import { EthereumTransport } from './transport';
 
 const { debug, trace } = createModuleDebug('eth:http');
 
+export class HttpTransportError extends Error {
+    constructor(message: string, public response?: string | any) {
+        super(message);
+    }
+}
+
 const CONFIG_DEFAULTS = {
     timeout: 60_000,
     validateCertificate: true,
@@ -54,7 +60,7 @@ export class HttpTransport implements EthereumTransport {
         debug('Sending JSON RPC request: %o', request.method);
         const result = await this.sendInternal(request);
         if (Array.isArray(result)) {
-            throw new Error(`JSON RPC returned batch but expected single message`);
+            throw new HttpTransportError(`JSON RPC returned batch but expected single message`, result);
         }
         return result;
     }
@@ -63,7 +69,7 @@ export class HttpTransport implements EthereumTransport {
         debug('Sending JSON RPC batch containing %d requests', request.length);
         const result = await this.sendInternal(request);
         if (!Array.isArray(result)) {
-            throw new Error(`JSON RPC returned single message, was expecting batch`);
+            throw new HttpTransportError(`JSON RPC returned single message, was expecting batch`, result);
         }
         return result;
     }
@@ -87,25 +93,39 @@ export class HttpTransport implements EthereumTransport {
                 agent: this.httpAgent,
                 timeout: this.config.timeout,
             });
-            if (response.status < 200 || response.status > 299) {
-                throw new Error(
-                    `JSON RPC service ${this.url} responded with HTTP status ${response.status} (${response.statusText})`
+            if (!response.ok) {
+                let responseBody: any = null;
+                try {
+                    responseBody = await response.text();
+                    try {
+                        responseBody = JSON.parse(responseBody);
+                    } catch (e) {
+                        // ignore
+                    }
+                } catch (e) {
+                    // ignore
+                }
+
+                throw new HttpTransportError(
+                    `JSON RPC service ${this.url} responded with HTTP status ${response.status} (${response.statusText})`,
+                    responseBody
                 );
             }
             const data = await response.json();
             trace('Received JSON RPC response:\n%O', data);
             if (!validateJsonRpcResponse(data)) {
-                throw new Error('UNREACHABLE: Invalid JSON RPC response');
+                throw new HttpTransportError('UNREACHABLE: Invalid JSON RPC response', data);
             }
             this.aggregates.requestDuration.push(Date.now() - startTime);
             debug('Completed JSON RPC request in %d ms', Date.now() - startTime);
 
             if (Array.isArray(request) !== Array.isArray(data)) {
                 checkError(Array.isArray(data) ? data[0] : data);
-                throw new Error(
+                throw new HttpTransportError(
                     Array.isArray(request)
                         ? 'JSON RPC returned single message, was expecting batch'
-                        : 'JSON RPC returned batch, was expecting single message'
+                        : 'JSON RPC returned batch, was expecting single message',
+                    data
                 );
             }
 

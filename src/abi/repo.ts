@@ -1,18 +1,15 @@
-import { readdir, readFile, stat } from 'fs-extra';
-import { basename, join as joinPath } from 'path';
+import { join as joinPath } from 'path';
 import { AbiCoder } from 'web3-eth-abi';
-import { AbiItem } from 'web3-utils';
+import { AbiRepositoryConfig } from '../config';
 import { RawLogResponse } from '../eth/responses';
 import { createModuleDebug, TRACE_ENABLED } from '../utils/debug';
 import { ManagedResource } from '../utils/resource';
-import { Abi, isAnonymous } from './abi';
-import { computeContractFingerprint } from './contract';
+import { Abi } from './abi';
 import { DecodedFunctionCall, DecodedLogEvent, decodeFunctionCall, decodeLogEvent } from './decode';
+import { loadAbiFile, searchAbiFiles } from './files';
 import { computeSignature, computeSignatureHash } from './signature';
-import { AbiRepositoryConfig } from '../config';
-import { searchAbiFiles, loadAbiFile } from './files';
 
-const { debug, info, warn, trace } = createModuleDebug('abi:repo');
+const { debug, info, trace } = createModuleDebug('abi:repo');
 
 interface AbiMatch {
     anonymous: boolean;
@@ -74,6 +71,17 @@ export class AbiRepository implements ManagedResource {
         if (abiFileContents.contractFingerprint != null) {
             this.contractsByFingerprint.set(abiFileContents.contractFingerprint, contractInfo);
         }
+
+        for (const { sig, abi } of abiFileContents.entries) {
+            const signatureHash = computeSignatureHash(sig, abi.type);
+            let match = this.signatures.get(signatureHash);
+            if (match == null) {
+                match = [abi];
+                this.signatures.set(signatureHash, match);
+            } else {
+                match.push(abi);
+            }
+        }
     }
 
     public get signatureCount(): number {
@@ -118,9 +126,8 @@ export class AbiRepository implements ManagedResource {
                     return { candidates: fingerprintMatch, anonymous: false };
                 }
             }
-            const anonymousMatches = match.filter(isAnonymous);
-            if (anonymousMatches.length > 0) {
-                return { candidates: anonymousMatches, anonymous: true };
+            if (match.length > 0) {
+                return { candidates: match, anonymous: true };
             }
             if (TRACE_ENABLED) {
                 trace(
@@ -178,7 +185,7 @@ export class AbiRepository implements ManagedResource {
         const sigHash = logEvent.topics[0].slice(2);
         const { data, topics } = logEvent;
 
-        this.abiDecode(sigHash, matchParams, (abi, sig, anon) =>
+        return this.abiDecode(sigHash, matchParams, (abi, sig, anon) =>
             decodeLogEvent(data, topics, abi, sig, this.abiCoder, anon)
         );
     }
