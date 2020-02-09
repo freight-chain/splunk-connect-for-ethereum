@@ -1,6 +1,8 @@
 import { debug as createDebug } from 'debug';
 import { writeFile } from 'fs-extra';
 import fetch from 'node-fetch';
+import { join } from 'path';
+import execa from 'execa';
 
 const debug = createDebug('updatechains');
 debug.enabled = true;
@@ -12,7 +14,9 @@ async function main() {
     const res = await fetch(CHAINS_URL);
     const data = await res.json();
     debug('Writing %o known chains to file data/chains.json', data.length);
-    await writeFile('data/chains.json', JSON.stringify(data, null, 2), { encoding: 'utf-8' });
+    const filePath = join(__dirname, '../data/chains.json');
+    await writeFile(filePath, JSON.stringify(data, null, 2), { encoding: 'utf-8' });
+    await execa('prettier', ['--write', filePath]);
 }
 
 main().catch(e => {

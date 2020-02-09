@@ -65,7 +65,8 @@
     "files": [
         "/bin",
         "/lib",
-        "/data/*.abisigs.gz"
+        "/data/*.abisigs.gz",
+        "/data/chains.json"
     ],
     "keywords": [
         "splunk",
