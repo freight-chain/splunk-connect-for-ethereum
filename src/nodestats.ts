@@ -42,13 +42,19 @@ export class NodeStatsCollector implements ManagedResource {
 
     public async start() {
         debug('Starting node stats collector');
-        const p = Promise.all([
-            this.startCollectingNodeInfo(),
-            this.startCollectingNodeMetrics(),
-            this.startCollectingPendingTransactions(),
-        ]);
-        this.donePromise = p;
-        await p;
+        try {
+            const p = Promise.all([
+                this.startCollectingNodeInfo(),
+                this.startCollectingNodeMetrics(),
+                this.startCollectingPendingTransactions(),
+            ]);
+            this.donePromise = p;
+            await p;
+        } catch (e) {
+            if (e !== ABORT) {
+                error('Node stats collector stopped with error', e);
+            }
+        }
         debug('Node stats collector completed');
     }
 
@@ -84,6 +90,7 @@ export class NodeStatsCollector implements ManagedResource {
                 failed = 0;
             } catch (e) {
                 if (e === ABORT) {
+                    info('Collection of %s aborted', taskName);
                     break;
                 }
                 failed++;
@@ -146,12 +153,11 @@ export class NodeStatsCollector implements ManagedResource {
             debug('Node metrics collection is disabled');
             return;
         }
-        const config = this.config.nodeMetrics;
-        this.periodicallyCollect(
+        await this.periodicallyCollect(
             this.collectNodeMetrics,
             'node metrics',
-            config.collectInterval,
-            config.retryWaitTime,
+            this.config.nodeMetrics.collectInterval,
+            this.config.nodeMetrics.retryWaitTime,
             this.aggregates.metricsCollectDuration,
             'metricsCollectCount',
             'metricsErrorCount'
@@ -174,12 +180,11 @@ export class NodeStatsCollector implements ManagedResource {
             );
         }
 
-        const config = this.config.pendingTx;
-        this.periodicallyCollect(
+        await this.periodicallyCollect(
             this.collectPendingTransactions,
             'pending txs',
-            config.collectInterval,
-            config.retryWaitTime,
+            this.config.pendingTx.collectInterval,
+            this.config.pendingTx.retryWaitTime,
             this.aggregates.pendingtxCollectDuration,
             'pendingTxCollectCount',
             'pendingTxErrorCount'
