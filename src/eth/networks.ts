@@ -34,16 +34,16 @@ export async function loadKnownNetworkList(): Promise<KnownNetwork[]> {
     return JSON.parse(data);
 }
 
-export async function lookupKnownNetworkName({
+export async function lookupKnownNetwork({
     chainId,
     networkId,
 }: {
     chainId: number;
     networkId: number;
-}): Promise<string | undefined> {
+}): Promise<{ chain: string; network: string } | undefined> {
     const knownNetworks = await loadKnownNetworkList();
     const match = knownNetworks.find(kn => kn.chainId === chainId && kn.networkId === networkId);
     if (match != null) {
-        return match.shortName;
+        return { chain: match.shortName, network: match.network };
     }
 }

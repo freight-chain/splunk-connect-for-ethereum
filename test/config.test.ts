@@ -47,6 +47,7 @@ test('defaults', async () => {
                   "hec": Object {
                     "default": Object {
                       "defaultFields": Object {
+                        "chainId": "$CHAIN_ID",
                         "enode": "$ENODE",
                         "network": "$NETWORK",
                         "networkId": "$NETWORK_ID",

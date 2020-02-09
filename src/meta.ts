@@ -1,4 +1,4 @@
-import { hostname } from 'os';
+import { hostname, platform } from 'os';
 import { EthloggerConfig } from './config';
 import { NodePlatformAdapter } from './platforms';
 import { createModuleDebug } from './utils/debug';
@@ -24,6 +24,9 @@ export interface MetadataVariables {
      * for known networks from the network ID
      */
     NETWORK?: string;
+
+    CHAIN_ID?: string;
+    CHAIN?: string;
     /** The ethlogger PID */
     PID: string;
     /** Ethlogger version */
@@ -57,6 +60,7 @@ export function substituteVariablesInHecConfig(
     }
 ) {
     const networkId = platformAdapter.networkId;
+    const chainId = platformAdapter.chainId;
     const metaVariables: MetadataVariables = {
         HOSTNAME: host,
         ENODE: platformAdapter.enode ?? '',
@@ -67,6 +71,8 @@ export function substituteVariablesInHecConfig(
         VERSION: ethloggerVersion,
         NODE_VERSION: nodeVersion,
         ETH_NODE_HOSTNAME: transportOriginHost,
+        CHAIN_ID: chainId != null ? String(chainId) : '',
+        CHAIN: platformAdapter.chainName ?? '',
     };
 
     const resolvedVariables = removeEmtpyValues(metaVariables);

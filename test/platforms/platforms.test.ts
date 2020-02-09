@@ -27,15 +27,17 @@ test('dai.poa.network', async () => {
 
             expect(platformAdapter.name).toMatchInlineSnapshot(`"parity"`);
             expect(platformAdapter.chainId).toEqual(100);
-            expect(platformAdapter.networkName).toEqual('xdai');
+            expect(platformAdapter.chainName).toMatchInlineSnapshot(`"xdai"`);
+            expect(platformAdapter.networkName).toMatchInlineSnapshot(`"mainnet"`);
 
             await expect(platformAdapter.captureNodeInfo(client)).resolves.toMatchInlineSnapshot(`
                         Object {
+                          "chain": "xdai",
                           "chainId": 100,
                           "clientVersion": "Parity-Ethereum//v2.5.13-stable-253ff3f-20191231/x86_64-linux-gnu/rustc1.40.0",
                           "enode": "enode://ab7f6c633ba2dc54795dfd2c739ba7d964f499541c0b8d8ba9d275bd3df1b789470a21a921a469fa515a3dfccc96a434a3fd016a169d88d0043fc6744f34288e@104.248.254.129:30303",
                           "mode": "active",
-                          "network": "xdai",
+                          "network": "mainnet",
                           "networkId": 100,
                           "nodeKind": Object {
                             "availability": "personal",
@@ -77,10 +79,11 @@ test('mainnet.infura.io', async () => {
             expect(platformAdapter.name).toMatchInlineSnapshot(`"generic:Geth"`);
             await expect(platformAdapter.captureNodeInfo(client)).resolves.toMatchInlineSnapshot(`
                         Object {
+                          "chain": "eth",
                           "chainId": 1,
                           "clientVersion": "Geth/v1.9.9-omnibus-e320ae4c-20191206/linux-amd64/go1.13.4",
                           "enode": null,
-                          "network": "eth",
+                          "network": "mainnet",
                           "networkId": 1,
                           "platform": "generic:Geth",
                           "protocolVersion": 64,
@@ -117,10 +120,11 @@ test('eth-mainnet.alchemyapi.io', async () => {
             expect(platformAdapter.name).toMatchInlineSnapshot(`"generic:Parity-Ethereum"`);
             await expect(platformAdapter.captureNodeInfo(client)).resolves.toMatchInlineSnapshot(`
                         Object {
+                          "chain": "eth",
                           "chainId": 1,
                           "clientVersion": "Parity-Ethereum//v2.7.2-stable-2662d19-20200206/x86_64-unknown-linux-gnu/rustc1.41.0",
                           "enode": null,
-                          "network": "eth",
+                          "network": "mainnet",
                           "networkId": 1,
                           "platform": "generic:Parity-Ethereum",
                           "protocolVersion": 63,

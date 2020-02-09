@@ -1,7 +1,7 @@
 import { NodePlatformAdapter } from '.';
 import { EthereumClient } from '../eth/client';
 import { JsonRpcError } from '../eth/jsonrpc';
-import { KNOWN_NETOWORK_NAMES, lookupKnownNetworkName } from '../eth/networks';
+import { KNOWN_NETOWORK_NAMES, lookupKnownNetwork } from '../eth/networks';
 import {
     blockNumber,
     clientVersion,
@@ -125,17 +125,23 @@ export class GenericNodeAdapter implements NodePlatformAdapter {
     protected nodeInfo?: NodeInfo;
     protected supports: { pendingTransactions: boolean; hashRate: boolean; peerCount: boolean } | undefined;
 
-    constructor(protected clientVersion: string, protected network?: string) {}
+    constructor(protected clientVersion: string, protected chain?: string, protected network?: string) {}
 
     public async initialize(ethClient: EthereumClient) {
         this.nodeInfo = await this.captureNodeInfo(ethClient);
 
-        if (this.network == null) {
+        if (this.network == null || this.chain == null) {
             if (this.nodeInfo != null && this.nodeInfo.chainId != null && this.nodeInfo.networkId != null) {
-                this.network = await lookupKnownNetworkName({
+                const knownNetwork = await lookupKnownNetwork({
                     chainId: this.nodeInfo.chainId,
                     networkId: this.nodeInfo.networkId,
                 });
+                if (knownNetwork != null && this.chain == null) {
+                    this.chain = knownNetwork.chain;
+                }
+                if (knownNetwork != null && this.network == null) {
+                    this.network = knownNetwork.network;
+                }
             } else if (this.nodeInfo?.networkId != null) {
                 this.network = KNOWN_NETOWORK_NAMES[this.nodeInfo?.networkId];
             }
@@ -166,11 +172,12 @@ export class GenericNodeAdapter implements NodePlatformAdapter {
             transport: ethClient.transport.source,
             enode: null,
             networkId: defaultInfo.networkId ?? null,
+            network: this.networkName,
             chainId: defaultInfo.chainId ?? null,
+            chain: this.chainName,
             protocolVersion: defaultInfo.protocolVersion ?? null,
             clientVersion: version,
             platform: `generic:${name}`,
-            network: this.networkName,
         };
     }
 
@@ -196,6 +203,10 @@ export class GenericNodeAdapter implements NodePlatformAdapter {
 
     public get networkName(): string | null {
         return this.network ?? null;
+    }
+
+    public get chainName(): string | null {
+        return this.chain ?? null;
     }
 
     public get protocolVersion(): number | null {

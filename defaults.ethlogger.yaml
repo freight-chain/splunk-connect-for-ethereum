@@ -33,6 +33,7 @@ hec:
             networkId: $NETWORK_ID
             network: $NETWORK
             platform: $PLATFORM
+            chainId: $CHAIN_ID
     internal:
         flushTime: 5s
         defaultMetadata:
