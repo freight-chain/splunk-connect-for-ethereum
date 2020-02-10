@@ -58,11 +58,26 @@ export class ReplayEthTransport implements EthereumTransport {
     constructor(private records: Record[], public source: string) {}
 
     public async send(request: JsonRpcRequest): Promise<JsonRpcResponse> {
-        const recordIdx = this.records.findIndex(r => r.req.method === request.method);
+        const paramsEqual = (a: any[] = [], b: any[] = []) => a.length === b.length && a.every((e, i) => b[i] === e);
+        const reqMatches = (r: Record) => r.req.method === request.method && paramsEqual(r.req.params, request.params);
+        const recordIdx = this.records.findIndex(reqMatches);
         if (recordIdx < 0) {
-            throw new Error(`Failed to replay request ${request.method} - no matching recorded request found`);
+            throw new Error(
+                `Failed to replay request ${request.method}(${request.params.join(
+                    ', '
+                )}) - no matching recorded request found`
+            );
         }
         const rec = this.records[recordIdx];
+
+        const hasMoreMatchingRecords = this.records.some((r, i) => i > recordIdx && reqMatches(r));
+
+        info('hasMoreMatchingRecords', hasMoreMatchingRecords);
+
+        if (hasMoreMatchingRecords) {
+            // this.records.splice(recordIdx, 1);
+        }
+
         return {
             jsonrpc: '2.0',
             id: request.id,

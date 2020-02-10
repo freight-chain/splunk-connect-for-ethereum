@@ -1,4 +1,4 @@
-import { hostname, platform } from 'os';
+import { hostname } from 'os';
 import { EthloggerConfig } from './config';
 import { NodePlatformAdapter } from './platforms';
 import { createModuleDebug } from './utils/debug';
@@ -21,11 +21,19 @@ export interface MetadataVariables {
     NETWORK_ID?: string;
     /**
      * The network name supplied via ethlogger config or auto-detected
-     * for known networks from the network ID
+     * for known networks from the network ID. Typical values are
+     * `"mainnet"` or `"testnet"`
      */
     NETWORK?: string;
-
+    /**
+     * Chain ID is the currently configured CHAIN_ID value used for
+     * signing replay-protected transactions, introduced via EIP-155
+     */
     CHAIN_ID?: string;
+    /**
+     * The chain name supplied via ethlogger config or auto-detected
+     * for known networks from the chain ID and network ID
+     */
     CHAIN?: string;
     /** The ethlogger PID */
     PID: string;

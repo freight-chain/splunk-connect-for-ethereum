@@ -216,7 +216,7 @@ export class BlockWatcher implements ManagedResource {
         info('Block watcher stopped');
     }
 
-    private async processChunk(chunk: BlockRange) {
+    async processChunk(chunk: BlockRange) {
         const startTime = Date.now();
         info('Processing chunk %s', serializeBlockRange(chunk));
 
