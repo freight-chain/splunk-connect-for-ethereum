@@ -45,13 +45,6 @@ Object {
   "quorumProtocol": Object {
     "cluster": Array [
       Object {
-        "ip": "172.16.239.17",
-        "nodeId": "239c1f044a2b03b6c4713109af036b775c5418fe4ca63b04b1ce00124af00ddab7cc088fc46020cdc783b6207efe624551be4c06a994993d8d70f684688fb7cf",
-        "p2pPort": 21000,
-        "raftId": 7,
-        "raftPort": 50400,
-      },
-      Object {
         "ip": "172.16.239.12",
         "nodeId": "0ba6b9f606a43a95edc6247cdb1c1e105145817be7bcafd6b2c0ba15d58145f0dc1a194f70ba73cd6f4cdd6864edc7687f311254c7555cc32e4d45aeb1b80416",
         "p2pPort": 21000,
@@ -84,6 +77,13 @@ Object {
         "nodeId": "eacaa74c4b0e7a9e12d2fe5fee6595eda841d6d992c35dbbcc50fcee4aa86dfbbdeff7dc7e72c2305d5a62257f82737a8cffc80474c15c611c037f52db1a3a7b",
         "p2pPort": 21000,
         "raftId": 6,
+        "raftPort": 50400,
+      },
+      Object {
+        "ip": "172.16.239.17",
+        "nodeId": "239c1f044a2b03b6c4713109af036b775c5418fe4ca63b04b1ce00124af00ddab7cc088fc46020cdc783b6207efe624551be4c06a994993d8d70f684688fb7cf",
+        "p2pPort": 21000,
+        "raftId": 7,
         "raftPort": 50400,
       },
       Object {

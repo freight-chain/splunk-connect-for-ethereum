@@ -71,11 +71,8 @@ export class ReplayEthTransport implements EthereumTransport {
         const rec = this.records[recordIdx];
 
         const hasMoreMatchingRecords = this.records.some((r, i) => i > recordIdx && reqMatches(r));
-
-        info('hasMoreMatchingRecords', hasMoreMatchingRecords);
-
         if (hasMoreMatchingRecords) {
-            // this.records.splice(recordIdx, 1);
+            this.records.splice(recordIdx, 1);
         }
 
         return {
