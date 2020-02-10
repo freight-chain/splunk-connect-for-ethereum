@@ -2,7 +2,7 @@ import { debug as createDebug } from 'debug';
 import { createWriteStream, readFile } from 'fs-extra';
 import { createGzip } from 'zlib';
 import { computeSignatureHash, validateSignature, parseSignature } from '../src/abi/signature';
-import { Abi } from '../src/abi/abi';
+import { AbiItemDefinition } from '../src/abi/item';
 
 const debug = createDebug('buildsigs');
 debug.enabled = true;
@@ -39,7 +39,7 @@ async function buildSignatureFile(sourceFile: string, destFile: string, type: 'f
         }
     }
 
-    const entries: [string, Abi[]][] = [];
+    const entries: [string, AbiItemDefinition[]][] = [];
     for (const [hash, sigs] of sigHashMap.entries()) {
         entries.push([hash, sigs.map(s => parseSignature(s, type))]);
     }

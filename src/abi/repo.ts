@@ -4,16 +4,16 @@ import { AbiRepositoryConfig } from '../config';
 import { RawLogResponse } from '../eth/responses';
 import { createModuleDebug, TRACE_ENABLED } from '../utils/debug';
 import { ManagedResource } from '../utils/resource';
-import { Abi } from './abi';
+import { AbiItemDefinition } from './item';
 import { DecodedFunctionCall, DecodedLogEvent, decodeFunctionCall, decodeLogEvent } from './decode';
-import { loadAbiFile, searchAbiFiles } from './files';
+import { loadAbiFile, searchAbiFiles, loadSignatureFile } from './files';
 import { computeSignature, computeSignatureHash } from './signature';
 
 const { debug, info, trace } = createModuleDebug('abi:repo');
 
 interface AbiMatch {
     anonymous: boolean;
-    candidates: Abi[];
+    candidates: AbiItemDefinition[];
 }
 
 interface AbiMatchParams {
@@ -23,11 +23,10 @@ interface AbiMatchParams {
 
 export interface ContractAbi {
     contractName: string;
-    // fileName: string;
 }
 
 export class AbiRepository implements ManagedResource {
-    private signatures: Map<string, Abi[]> = new Map();
+    private signatures: Map<string, AbiItemDefinition[]> = new Map();
     private contractsByFingerprint: Map<string, ContractAbi> = new Map();
     private contractsByAddress: Map<string, ContractAbi> = new Map();
     private abiCoder: AbiCoder = require('web3-eth-abi');
@@ -42,13 +41,28 @@ export class AbiRepository implements ManagedResource {
         }
 
         if (config.decodeAnonymous) {
-            await this.loadAnonymousSignatures(joinPath(__dirname, '../../data/fns.abisigs.gz'));
-            await this.loadAnonymousSignatures(joinPath(__dirname, '../../data/evts.abisigs.gz'));
+            const fnCount = await this.loadAnonymousSignatures(joinPath(__dirname, '../../data/fns.abisigs.gz'));
+            const evCount = await this.loadAnonymousSignatures(joinPath(__dirname, '../../data/evts.abisigs.gz'));
+            info('Loaded %d anonymous ABI signatures from built-in signature files', fnCount + evCount);
         }
     }
 
-    public async loadAnonymousSignatures(file: string) {
+    public async loadAnonymousSignatures(file: string): Promise<number> {
         debug('Loading anonymous signatures from %s', file);
+        let count = 0;
+        const { entries } = await loadSignatureFile(file);
+        for (const [sig, abis] of entries) {
+            const match = this.signatures.get(sig);
+            if (match == null) {
+                this.signatures.set(sig, abis);
+            } else {
+                for (const abi of abis) {
+                    match.push(abi);
+                }
+            }
+            count++;
+        }
+        return count;
     }
 
     public async loadAbisFromDir(dir: string, config: AbiRepositoryConfig): Promise<number> {
@@ -143,7 +157,7 @@ export class AbiRepository implements ManagedResource {
     private abiDecode<T>(
         sigHash: string,
         matchParams: AbiMatchParams,
-        decodeFn: (abi: Abi, signature: string, anonymous: boolean) => T
+        decodeFn: (abi: AbiItemDefinition, signature: string, anonymous: boolean) => T
     ): T | undefined {
         const matchingAbis = this.findMatchingAbis(sigHash, matchParams);
         trace('Found %d matching ABIs for signature %s', matchingAbis?.candidates?.length ?? 0, sigHash);

@@ -1,5 +1,5 @@
 import { sha3, AbiInput } from 'web3-utils';
-import { Abi } from './abi';
+import { AbiItemDefinition } from './item';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { parseSignature: parse } = require('ethers/utils/abi-coder');
 
@@ -12,7 +12,7 @@ export const encodeParam = (input: AbiInput): string =>
         ? `(${input.components?.map(encodeParam) ?? err('Failed to encode tuple without components')})`
         : input.type;
 
-export function computeSignature(abi: Abi) {
+export function computeSignature(abi: AbiItemDefinition) {
     if (abi.name == null) {
         throw new Error('Cannot add ABI item without name');
     }
@@ -25,7 +25,7 @@ const normalizeInput = (input: any): AbiInput =>
         components: Array.isArray(input.components) ? input.components.map(normalizeInput) : undefined,
     } as AbiInput);
 
-export function parseSignature(signature: string, type: 'function' | 'event'): Abi {
+export function parseSignature(signature: string, type: 'function' | 'event'): AbiItemDefinition {
     const res = parse(signature) as any;
     const name: string = res.name ?? err('Failed to decode signature');
     if (!Array.isArray(res.inputs)) {

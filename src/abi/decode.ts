@@ -1,7 +1,7 @@
 import { AbiCoder } from 'web3-eth-abi';
 import { toChecksumAddress } from 'web3-utils';
 import { parseBigInt } from '../utils/bn';
-import { Abi } from './abi';
+import { AbiItemDefinition } from './item';
 import { elementType, intBits, isArrayType } from './datatypes';
 
 export type ScalarValue = string | number | boolean;
@@ -69,7 +69,7 @@ export function parseParameterValue(value: string | number | boolean, type: stri
 
 export function decodeFunctionCall(
     data: string,
-    abi: Abi,
+    abi: AbiItemDefinition,
     signature: string,
     abiCoder: AbiCoder,
     anonymous: boolean
@@ -107,7 +107,7 @@ export function decodeFunctionCall(
 export function decodeLogEvent(
     data: string,
     topics: string[],
-    abi: Abi,
+    abi: AbiItemDefinition,
     signature: string,
     abiCoder: AbiCoder,
     anonymous: boolean

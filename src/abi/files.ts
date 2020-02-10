@@ -1,12 +1,14 @@
-import { readdir, readFile, stat } from 'fs-extra';
+import { readdir, readFile, stat, createReadStream } from 'fs-extra';
 import { basename, join as joinPath } from 'path';
 import { AbiItem } from 'web3-utils';
 import { AbiRepositoryConfig } from '../config';
 import { Address } from '../msgs';
 import { createModuleDebug } from '../utils/debug';
-import { Abi } from './abi';
+import { AbiItemDefinition } from './item';
 import { computeContractFingerprint } from './contract';
 import { computeSignature } from './signature';
+import { createGunzip } from 'zlib';
+import BufferList from 'bl';
 
 const { debug, warn } = createModuleDebug('abi:files');
 
@@ -22,7 +24,7 @@ interface TruffleBuild {
 
 export interface SignatureFileContents {
     type: 'function' | 'event';
-    entries: Array<[string, ...Abi[]]>;
+    entries: Array<[string, AbiItemDefinition[]]>;
 }
 
 export function isAbiItemArray(obj: any): obj is AbiItem[] {
@@ -66,7 +68,7 @@ export interface AbiFileContents {
     contractAddress?: string;
     contractFingerprint?: string;
     entries: Array<{
-        abi: Abi;
+        abi: AbiItemDefinition;
         sig: string;
     }>;
 }
@@ -147,4 +149,26 @@ export async function loadAbiFile(path: string, config: AbiRepositoryConfig): Pr
     const contents = await readFile(path, { encoding: 'utf-8' });
     const data = JSON.parse(contents);
     return await parseAbiFileContents(data, { fileName: path, computeFingerprint: config.fingerprintContracts });
+}
+
+export async function readGzipFile(path: string, { encoding = 'utf-8' }: { encoding?: string } = {}): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const result = new BufferList();
+        createReadStream(path)
+            .pipe(createGunzip())
+            .on('data', chunk => {
+                result.append(chunk);
+            })
+            .on('end', () => {
+                resolve(result.toString(encoding));
+            })
+            .on('error', e => {
+                reject(e);
+            });
+    });
+}
+
+export async function loadSignatureFile(path: string): Promise<SignatureFileContents> {
+    const contents = await readGzipFile(path);
+    return JSON.parse(contents);
 }
