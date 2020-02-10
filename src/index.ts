@@ -7,7 +7,7 @@ import { Checkpoint } from './checkpoint';
 import { CLI_FLAGS } from './cliflags';
 import { ConfigError, loadEthloggerConfig, EthloggerConfig } from './config';
 import { ContractInfo } from './abi/contract';
-import { BatchedEthereumClient } from './eth/client';
+import { BatchedEthereumClient, EthereumClient } from './eth/client';
 import { HttpTransport } from './eth/http';
 import { HecClient } from './hec';
 import { introspectTargetNodePlatform } from './introspect';
@@ -91,14 +91,23 @@ class Ethlogger extends Command {
         };
 
         const transport = new HttpTransport(config.eth.url, config.eth.http);
-        const client = new BatchedEthereumClient(transport, { maxBatchSize: 100, maxBatchTime: 0 });
-        const platformAdapter = await introspectTargetNodePlatform(client, config.eth.network);
+        const client =
+            config.eth.client.maxBatchSize > 1
+                ? new BatchedEthereumClient(transport, {
+                      maxBatchSize: config.eth.client.maxBatchSize,
+                      maxBatchTime: config.eth.client.maxBatchTime,
+                  })
+                : new EthereumClient(transport);
+        const platformAdapter = await introspectTargetNodePlatform(client, config.eth.chain, config.eth.network);
 
         info(
-            'Detected node platform=%o network=%d protocol=%d',
+            'Detected node platform=%o protocol=%d chainId=%d networkId=%d chain=%s network=%s',
             platformAdapter.name,
+            platformAdapter.protocolVersion,
+            platformAdapter.chainId,
             platformAdapter.networkId,
-            platformAdapter.protocolVersion
+            platformAdapter.networkName,
+            platformAdapter.chainName
         );
 
         substituteVariablesInHecConfig(config, {
@@ -160,6 +169,7 @@ class Ethlogger extends Command {
                 startAt: config.blockWatcher.startAt,
                 contractInfoCache,
                 chunkSize: config.blockWatcher.blocksMaxChunkSize,
+                maxParallelChunks: config.blockWatcher.maxParallelChunks,
                 pollInterval: config.blockWatcher.pollInterval,
             });
             addResource(blockWatcher);

@@ -19,6 +19,7 @@ test('defaults', async () => {
                   "blockWatcher": Object {
                     "blocksMaxChunkSize": 25,
                     "enabled": true,
+                    "maxParallelChunks": 3,
                     "pollInterval": 500,
                     "retryWaitTime": [Function],
                     "startAt": "genesis",
@@ -31,6 +32,7 @@ test('defaults', async () => {
                     "maxCacheEntries": 25000,
                   },
                   "eth": Object {
+                    "chain": undefined,
                     "client": Object {
                       "maxBatchSize": 100,
                       "maxBatchTime": 0,
@@ -131,6 +133,7 @@ test('cli flags overrides', async () => {
         Object {
           "blocksMaxChunkSize": 25,
           "enabled": true,
+          "maxParallelChunks": 3,
           "pollInterval": 500,
           "retryWaitTime": [Function],
           "startAt": -1000,

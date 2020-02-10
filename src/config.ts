@@ -86,11 +86,21 @@ export interface EthereumConfigSchema {
      * Network name logged as a field with every event and metric.
      * Ethlogger will attempt to automatically determine if not specified
      * but there are only a handful of known public networkIds associated
-     * with particular networks (ethereum mainnet, ropsten, ...). This value
-     * will allow consumers of data to distinguish between different networks
-     * in case multiple networks are being logged to one place.
+     * with particular networks (ethereum mainnet, ropsten, ...). Typical
+     * values of the network name are `"mainnet"` or `"testnet"`.
      */
     network?: string;
+    /**
+     * Chain name logged as a field with every event and metric.
+     * Ethlogger will attempt to automatically determine if not specified
+     * but there are only a handful of known public chainIds associated
+     * with particular ethereum-based chains. This value will allow
+     * consumers of data to distinguish between different chains
+     * in case multiple chains are being logged to one place.
+     *
+     * @see [https://chainid.network](https://chainid.network)
+     */
+    chain?: string;
     /** HTTP tansport configuration */
     http: HttpTransportConfigSchema;
     /** Ethereum client configuration */
@@ -171,6 +181,8 @@ export interface BlockWatcherConfigSchema {
     pollInterval: DurationConfig;
     /** Max. number of blocks to fetch at once */
     blocksMaxChunkSize: number;
+    /** Max. number of chunks to process in parallel */
+    maxParallelChunks: number;
     /** If no checkpoint exists (yet), this specifies which block should be chosen as the starting point. */
     startAt: StartBlock;
     /** Wait time before retrying to fetch and process blocks after failure */
@@ -681,6 +693,7 @@ export async function loadEthloggerConfig(flags: CliFlags, dryRun: boolean = fal
         eth: {
             url: required('eth-rpc-url', defaults.eth?.url),
             network: flags['network-name'] ?? defaults.eth?.network,
+            chain: flags['chain-name'],
             client: {
                 maxBatchSize: defaults.eth?.client?.maxBatchSize ?? 0,
                 maxBatchTime: parseDuration(defaults.eth?.client?.maxBatchTime!) ?? 0,
@@ -740,6 +753,7 @@ export async function loadEthloggerConfig(flags: CliFlags, dryRun: boolean = fal
                 defaults.blockWatcher?.enabled ??
                 true,
             blocksMaxChunkSize: defaults.blockWatcher?.blocksMaxChunkSize ?? 25,
+            maxParallelChunks: defaults.blockWatcher?.maxParallelChunks ?? 3,
             pollInterval: parseDuration(defaults.blockWatcher?.pollInterval) ?? 500,
             startAt: parseStartAt(flags['start-at-block'] ?? defaults.blockWatcher?.startAt) ?? 'genesis',
             retryWaitTime: waitTimeFromConfig(defaults.blockWatcher?.retryWaitTime) ?? 60000,

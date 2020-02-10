@@ -34,6 +34,7 @@ hec:
             network: $NETWORK
             platform: $PLATFORM
             chainId: $CHAIN_ID
+            chain: $CHAIN
     internal:
         flushTime: 5s
         defaultMetadata:
@@ -69,6 +70,7 @@ blockWatcher:
     enabled: true
     pollInterval: 500ms
     blocksMaxChunkSize: 25
+    maxParallelChunks: 3
     startAt: genesis
     retryWaitTime:
         type: linear-backoff
