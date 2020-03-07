@@ -3,109 +3,95 @@ name: CI
 on: [push]
 
 jobs:
-    build:
-        runs-on: self-hosted
-        container:
-            image: splunkdlt/scfe-ci@sha256:f318132799daed215224fbac79522f00720476d3e939cda9fd4a3f563384fdfc
-        steps:
-            - uses: actions/checkout@v2
-            - name: Build ethlogger CLI
-              run: |
-                  yarn install --frozen-lockfile
-                  yarn build
+    # build:
+    #     runs-on: self-hosted
+    #     container:
+    #         image: splunkdlt/scfe-ci@sha256:f3af6d7d65d2c5d67bfbba4d0029b7a9a6cdd15a2170a442aec765a6cffdaa49
+    #     steps:
+    #         - uses: actions/checkout@v2
+    #         - name: Build ethlogger CLI
+    #           run: |
+    #               yarn install --frozen-lockfile
+    #               yarn build
     docker-image:
         runs-on: self-hosted
+        container:
+            image: splunkdlt/scfe-ci@sha256:f3af6d7d65d2c5d67bfbba4d0029b7a9a6cdd15a2170a442aec765a6cffdaa49
+            volumes: ['/var/run/docker.sock:/var/run/docker.sock']
         steps:
             - uses: actions/checkout@v2
             - name: Build docker image
               run: docker build -t ethlogger .
-            - name: Login to docker registry
-              run: docker login docker.pkg.github.com -u $GITHUB_ACTOR -p $GITHUB_TOKEN
-              env:
-                  GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-            - name: Publish docker image
-              run: |
-                  docker tag ethlogger docker.pkg.github.com/$GITHUB_REPOSITORY/ethlogger:$GITHUB_SHA
-                  docker push docker.pkg.github.com/$GITHUB_REPOSITORY/ethlogger:$GITHUB_SHA
-    unit-tests:
-        runs-on: self-hosted
-        container:
-            image: splunkdlt/scfe-ci@sha256:f318132799daed215224fbac79522f00720476d3e939cda9fd4a3f563384fdfc
-        steps:
-            - uses: actions/checkout@v2
-            - name: Run unit tests and linter
-              run: |
-                  yarn install --frozen-lockfile
-                  yarn build
-                  yarn test --verbose
-              env:
-                  CI: true
-    check-format:
-        runs-on: self-hosted
-        container:
-            image: splunkdlt/scfe-ci@sha256:f318132799daed215224fbac79522f00720476d3e939cda9fd4a3f563384fdfc
-        steps:
-            - uses: actions/checkout@v2
-            - name: Check code format
-              run: |
-                  yarn install --frozen-lockfile
-                  yarn format:verify
-              env:
-                  CI: true
-    check-generated-files:
-        runs-on: self-hosted
-        container:
-            image: splunkdlt/scfe-ci@sha256:f318132799daed215224fbac79522f00720476d3e939cda9fd4a3f563384fdfc
-        steps:
-            - uses: actions/checkout@v2
-            - name: Check if generated files are up-to-date
-              run: |
-                  yarn install --frozen-lockfile
-                  yarn build
-                  yarn generate:all
-                  echo "Checking if generated files are up-to-date"
-                  git diff --exit-code
-              env:
-                  CI: true
-    trigger-release:
-        runs-on: self-hosted
-        container:
-            image: splunkdlt/scfe-ci@sha256:f318132799daed215224fbac79522f00720476d3e939cda9fd4a3f563384fdfc
-        needs:
-            - build
-            - docker-image
-            - unit-tests
-            - check-format
-            - check-generated-files
-        if: github.ref == 'refs/heads/master'
-        steps:
-            - uses: actions/checkout@v2
-              with:
-                  fetch-depth: 0
-            - name: Semantic release
-              run: |
-                  yarn install --frozen-lockfile
-                  yarn semantic-release
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    post-release:
-        runs-on: self-hosted
-        needs:
-            - trigger-release
-        if: github.ref == 'refs/heads/master'
-        steps:
-            - uses: actions/checkout@v2
-              with:
-                  fetch-depth: 0
-            - name: Use Node.js 12
-              uses: actions/setup-node@v1
-              with:
-                  node-version: 12
-            - name: Post release
-              run: |
-                  yarn install --frozen-lockfile
-                  yarn ts-node scripts/postrelease.ts
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
+            # - name: Login to docker registry
+            #   run: docker login docker.pkg.github.com -u $GITHUB_ACTOR -p $GITHUB_TOKEN
+            #   env:
+            #       GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+            # - name: Publish docker image
+            #   run: |
+            #       docker tag ethlogger docker.pkg.github.com/$GITHUB_REPOSITORY/ethlogger:$GITHUB_SHA
+            #       docker push docker.pkg.github.com/$GITHUB_REPOSITORY/ethlogger:$GITHUB_SHA
+    # unit-tests:
+    #     runs-on: self-hosted
+    #     container:
+    #         image: splunkdlt/scfe-ci@sha256:f3af6d7d65d2c5d67bfbba4d0029b7a9a6cdd15a2170a442aec765a6cffdaa49
+    #     steps:
+    #         - uses: actions/checkout@v2
+    #         - name: Run unit tests and linter
+    #           run: |
+    #               yarn install --frozen-lockfile
+    #               yarn build
+    #               yarn test --verbose
+    #           env:
+    #               CI: true
+    # check-format:
+    #     runs-on: self-hosted
+    #     container:
+    #         image: splunkdlt/scfe-ci@sha256:f3af6d7d65d2c5d67bfbba4d0029b7a9a6cdd15a2170a442aec765a6cffdaa49
+    #     steps:
+    #         - uses: actions/checkout@v2
+    #         - name: Check code format
+    #           run: |
+    #               yarn install --frozen-lockfile
+    #               yarn format:verify
+    #           env:
+    #               CI: true
+    # check-generated-files:
+    #     runs-on: self-hosted
+    #     container:
+    #         image: splunkdlt/scfe-ci@sha256:f3af6d7d65d2c5d67bfbba4d0029b7a9a6cdd15a2170a442aec765a6cffdaa49
+    #     steps:
+    #         - uses: actions/checkout@v2
+    #         - name: Check if generated files are up-to-date
+    #           run: |
+    #               yarn install --frozen-lockfile
+    #               yarn build
+    #               yarn generate:all
+    #               echo "Checking if generated files are up-to-date"
+    #               git diff --exit-code
+    #           env:
+    #               CI: true
+    # trigger-release:
+    #     runs-on: self-hosted
+    #     container:
+    #         image: splunkdlt/scfe-ci@sha256:f3af6d7d65d2c5d67bfbba4d0029b7a9a6cdd15a2170a442aec765a6cffdaa49
+    #         volumes: /var/run/docker.sock:/var/run/docker.sock
+    #     needs:
+    #         - build
+    #         - docker-image
+    #         - unit-tests
+    #         - check-format
+    #         - check-generated-files
+    #     if: github.ref == 'refs/heads/master'
+    #     steps:
+    #         - uses: actions/checkout@v2
+    #           with:
+    #               fetch-depth: 0
+    #         - name: Semantic release
+    #           run: |
+    #               yarn install --frozen-lockfile
+    #               yarn semantic-release
+    #               yarn ts-node scripts/postrelease.ts
+    #           env:
+    #               GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #               NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #               DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
