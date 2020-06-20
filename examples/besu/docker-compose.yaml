@@ -7,7 +7,7 @@ services:
         environment:
             - SPLUNK_START_ARGS=--accept-license
             - SPLUNK_HEC_TOKEN=11111111-1111-1111-1111-1111111111113
-            - SPLUNK_PASSWORD=changeme
+            - SPLUNK_PASSWORD=${SPLUNK_TOKENZ}
             - SPLUNK_APPS_URL=https://github.com/splunk/ethereum-basics/releases/download/latest/ethereum-basics.tgz
         ports:
             - 18000:8000
@@ -27,7 +27,7 @@ services:
             - COLLECT_PEER_INFO=true
             - COLLECT_PENDING_TX=true
             - ETH_RPC_URL=http://besu:8545
-            - NETWORK_NAME=dev
+            - NETWORK_NAME=/genesis.json
             # Use these environment variables to connect to infura
             # - ETH_RPC_URL=https://mainnet.infura.io/v3/<your infura project id>
             # - NETWORK_NAME=mainnet
@@ -46,20 +46,21 @@ services:
         depends_on:
             - splunk
     besu:
-        image: hyperledger/besu:1.4.4
+        image: hyperledger/besu:1.4.6
         container_name: besu
         environment:
+            - BESU_PUBLIC_KEY_DIRECTORY=/opt/besu/public-keys/
+            - BESU_P2P_HOST=0.0.0.0
             - BESU_RPC_HTTP_ENABLED=true
             - BESU_RPC_WS_ENABLED=true
-            - BESU_NETWORK=dev
-            - BESU_MINER_ENABLED=true
-            - BESU_MINER_COINBASE=0xfe3b557e8fb62b89f4916b721be55ceb828dbd73
-            - BESU_HOST_WHITELIST=*
+            - BESU_NETWORK=/genesis.json
+            - BESU_MINER_ENABLED=false
+            - BESU_HOST_WHITELIST="*"
             - BESU_RPC_HTTP_HOST=0.0.0.0
             - BESU_RPC_WS_HOST=0.0.0.0
-            - BESU_RPC_HTTP_API=admin,eth,debug,miner,net,txpool,priv,trace,web3
+            - BESU_RPC_HTTP_API=admin,eth,debug,net,txpool,trace,web3
             - BESU_RPC_HTTP_CORS_ORIGIN="all"
-            - BESU_LOGGING=trace
+            - BESU_LOGGING=debug
             # Splunk logging configuration
             - LOGGER=Splunk
             - SPLUNK_URL=https://splunk:8088
